@@ -2,16 +2,11 @@
 
 Helps you set AWS credentials as explicit environment variables in your terminal.
 
+### Install
+
+Download the appropriate binary for [the latest release](https://github.com/rclark/cred/releases/latest) and put it somewhere on your `${PATH}`.
+
 ### Use
-
-These examples will set the following environment variables:
-
-- `AWS_ACCOUNT_ID`
-- `AWS_DEFAULT_REGION`
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_SESSION_TOKEN` (if applicable)
-- `AWS_SESSION_EXPIRES_AT` (if applicable)
 
 ```sh
 > eval $(cred)
@@ -26,6 +21,15 @@ or
 > echo $AWS_ACCESS_KEY_ID
 ASIA3K82BVNR9P6M2TDL
 ```
+
+These examples will set the following environment variables:
+
+- `AWS_ACCOUNT_ID`
+- `AWS_DEFAULT_REGION`
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_SESSION_TOKEN` (if applicable)
+- `AWS_SESSION_EXPIRES_AT` (if applicable)
 
 ### Notes
 
