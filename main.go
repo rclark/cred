@@ -18,6 +18,28 @@ import (
 
 var profile string
 
+const (
+	accessKeyID      = "AWS_ACCESS_KEY_ID"
+	secretAccessKey  = "AWS_SECRET_ACCESS_KEY"
+	sessionToken     = "AWS_SESSION_TOKEN"
+	sessionExpiresAt = "AWS_SESSION_EXPIRES_AT"
+	accountID        = "AWS_ACCOUNT_ID"
+	defaultRegion    = "AWS_DEFAULT_REGION"
+	region           = "AWS_REGION"
+)
+
+func allVars() []string {
+	return []string{
+		accessKeyID,
+		secretAccessKey,
+		sessionToken,
+		sessionExpiresAt,
+		accountID,
+		defaultRegion,
+		region,
+	}
+}
+
 func set(key, val string) string {
 	return fmt.Sprintf("%s=%s", key, val)
 }
@@ -51,13 +73,7 @@ var rootCmd = &cobra.Command{
 			opts = append(opts, config.WithSharedConfigProfile(profile))
 		}
 
-		for _, key := range []string{
-			"AWS_ACCOUNT_ID",
-			"AWS_DEFAULT_REGION",
-			"AWS_ACCESS_KEY_ID",
-			"AWS_SECRET_ACCESS_KEY",
-			"AWS_SESSION_TOKEN",
-		} {
+		for _, key := range allVars() {
 			os.Setenv(key, "")
 		}
 
@@ -79,33 +95,35 @@ var rootCmd = &cobra.Command{
 		unsets := []string{}
 
 		exports := []string{
-			set("AWS_ACCESS_KEY_ID", creds.AccessKeyID),
-			set("AWS_SECRET_ACCESS_KEY", creds.SecretAccessKey),
+			set(accessKeyID, creds.AccessKeyID),
+			set(secretAccessKey, creds.SecretAccessKey),
 		}
 
 		if creds.AccountID != "" {
-			exports = append(exports, set("AWS_ACCOUNT_ID", creds.AccountID))
+			exports = append(exports, set(accountID, creds.AccountID))
 		} else {
-			exports = append(exports, set("AWS_ACCOUNT_ID", *data.Account))
+			exports = append(exports, set(accountID, *data.Account))
 		}
 
 		if cfg.Region != "" {
-			exports = append(exports, set("AWS_DEFAULT_REGION", cfg.Region))
+			exports = append(exports, set(defaultRegion, cfg.Region))
+			exports = append(exports, set(region, cfg.Region))
 		} else {
-			unsets = append(unsets, unset("AWS_DEFAULT_REGION"))
+			unsets = append(unsets, unset(defaultRegion))
+			unsets = append(unsets, unset(region))
 		}
 
 		if creds.SessionToken != "" {
 			exports = append(
 				exports,
-				set("AWS_SESSION_TOKEN", creds.SessionToken),
-				set("AWS_SESSION_EXPIRES_AT", creds.Expires.Format(time.RFC3339)),
+				set(sessionToken, creds.SessionToken),
+				set(sessionExpiresAt, creds.Expires.Format(time.RFC3339)),
 			)
 		} else {
 			unsets = append(
 				unsets,
-				unset("AWS_SESSION_TOKEN"),
-				unset("AWS_SESSION_EXPIRES_AT"),
+				unset(sessionToken),
+				unset(sessionExpiresAt),
 			)
 		}
 
@@ -120,8 +138,9 @@ var rootCmd = &cobra.Command{
 }
 
 var expiryCmd = &cobra.Command{
-	Use:   "expiry",
-	Short: "Print the time that explicit environment credentials will expire",
+	Use:     "expiry",
+	Short:   "Print the time that explicit environment credentials will expire",
+	Aliases: []string{"exp", "expires", "expire"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		switch {
 		case os.Getenv("AWS_ACCESS_KEY_ID") == "":
@@ -141,6 +160,22 @@ var expiryCmd = &cobra.Command{
 	},
 }
 
+var clearCmd = &cobra.Command{
+	Use:     "clear",
+	Short:   "Clear AWS environment variables",
+	Long:    wordwrap.WrapString("Clear AWS environment variables.\n\nEvaluate the output of the command in order to export AWS credentials as environment variables, e.g. $(cred clear) or eval $(cred clear).", 80),
+	Aliases: []string{"unset", "rm", "none"},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		unsets := []string{}
+		for _, key := range allVars() {
+			unsets = append(unsets, unset(key))
+		}
+
+		fmt.Println(strings.Join(unsets, "\n"))
+		return nil
+	},
+}
+
 func main() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
@@ -151,4 +186,5 @@ func init() {
 	rootCmd.Flags().StringVar(&profile, "profile", "", "AWS profile to use")
 
 	rootCmd.AddCommand(expiryCmd)
+	rootCmd.AddCommand(clearCmd)
 }
