@@ -26,10 +26,15 @@ These examples will set the following environment variables:
 
 - `AWS_ACCOUNT_ID`
 - `AWS_DEFAULT_REGION`
+- `AWS_REGION`
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 - `AWS_SESSION_TOKEN` (if applicable)
 - `AWS_SESSION_EXPIRES_AT` (if applicable)
+
+Also includes other commands:
+- `creds expiry`: Print when the credentials set in your environment variables will expire.
+- `creds clear`: Unset all AWS environment variables.
 
 ### Notes
 
